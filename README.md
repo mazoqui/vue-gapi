@@ -34,7 +34,7 @@ If you what your users to signin in your Google Firebase application you must in
     "projectId": "APP_NAME",
     "storageBucket": "APP_NAME.appspot.com",
     "messagingSenderId": "PROJECT_ID",
-    "appId": "1:PROJECT_ID:web:25e0e97317eb2ed6cd7c74"
+    "appId": "1:PROJECT_ID:web:XASDASDASSDSDSDSDSD"
   }
 }
 ```
