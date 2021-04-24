@@ -17,7 +17,7 @@ Create your Google authentication settings file
 {
   "client_id": "CLIENT_ID.apps.googleusercontent.com",
   "scope": "profile email",
-  "apiKey": "AIzaSyD3oiUFgeQLOYbk72z8ajRv3ADBVka893s"
+  "apiKey": "API_KEY"
 }
 ```
 
@@ -28,7 +28,7 @@ If you what your users to signin in your Google Firebase application you must in
 {
   "client_id": "CLIENT_ID.apps.googleusercontent.com",
   "scope": "profile email",
-  "apiKey": "AIzaSyD3oiUFgeQLOYbk72z8ajRv3ADBVka893s",
+  "apiKey": "API_KEY",
   "firebase": {
     "authDomain": "APP_NAME.firebaseapp.com",
     "projectId": "APP_NAME",
