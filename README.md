@@ -3,6 +3,13 @@ A light and fast Google API Vuejs plugin.
 
 Firebase authentication support!
 
+## Features
+
+- Google UI SignIn button fully customizable
+- API Injection
+- Simplified Google API (gapi) and Google Firebase authentication 
+- SignIn / SignOut events 
+
 ## Instalation
 
 Just copy gapi.js to your plugins directory
@@ -22,7 +29,7 @@ Create your Google authentication settings file
 ```
 
 ### Firebase authentication settings
-If you what your users to signin in your Google Firebase application you must include the Firebase settings by adding the firebase object to the :
+If you want your users to signin in your Google Firebase application you must include the Firebase settings by adding the firebase object to the :
  
 ``` json
 {
