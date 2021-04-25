@@ -126,6 +126,13 @@ export default {
       script.setAttribute('src', 'https://apis.google.com/js/platform.js');
       script.setAttribute('type', 'text/javascript');
       script.onload=()=>{
+        
+        window.gapi.load("client",()=>{
+          if (options?.apiKey){
+            window.gapi.setApiKey=options?.apiKey;
+          }
+        }); 
+        
         window.gapi.load('auth2', ()=>{
           // https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
           window.gapi.auth2.init({
@@ -135,11 +142,7 @@ export default {
             window.gapi.auth2.getAuthInstance().isSignedIn.listen(authState);
             authState(self.$isSignedIn); // important call when user is already logged in
             if (gauth){
-              window.gapi.load("client",()=>{
-                if (options?.apiKey){
-                  window.gapi.setApiKey=options?.apiKey;
-                }
-              });              
+                           
               onReady(window.gapi);
             }
             else{
