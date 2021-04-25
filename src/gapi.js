@@ -34,8 +34,22 @@ Vue.component('GSignIn', {
       }
     })
   },
+  computed:{
+    ready(){
+      return this?.$gapi?.state?.ready||false;
+    }
+  },
+  watch:{
+    ready(n){
+      if (n && !this?.$gapi?.state?.user && this.$el){
+        this.$gapi.$btnSignedIn(this.$el);        
+      }    
+    }
+  },
   mounted(){
-    this.$gapi.$btnSignedIn(this.$el);
+    if (this.ready && !this?.$gapi?.state?.user && this.$el){
+      this.$gapi.$btnSignedIn(this.$el);        
+    }
   }
 });
 
@@ -90,26 +104,33 @@ const fb = (options)=>{
 export default {  
   
   install(Vue, options) { 
-    let self=this;    
-    self.listeners = [];
-
+    let self=this;
     Object.defineProperty(Vue.prototype, '$gapi', { 
       get(){
         return {...window.gapi , ...self};        
       }      
-    });    
+    });
 
-    const authState=function(signIn){
-      
+    self.listeners = [];
+    
+    self.state = new Vue({
+      data: {
+        user: null,
+        ready: false
+      }
+    });
+    
+    const authState=function(signIn){      
+      const profile = signIn ? self.$basicProfile : null;
+      Vue.set(self.state,"user", profile);
       const event = signIn ? "user:signIn" : "user:signOut";
       self.listeners.forEach(o=>{        
         if (o.e==event && o.f && typeof o.f=="function"){
           (async function (f){
-            f(self.$user);            
+            f(profile);
           })(o.f);
         }
-      });    
-
+      });
       if (self.$fb){
         if (signIn){
           self.$fb.signIn(self.$idToken, self.$accessToken);          
@@ -120,41 +141,57 @@ export default {
       }
     };
 
+    Vue.mixin({
+      computed:{
+        $user(){
+          return this.$gapi && this?.$gapi?.state?.user || null;
+        }
+      },
+      created() {
+        if (this.$signedIn){
+          self.listeners.push({e:"user:signIn", f: this.$signedIn});
+          if (self.$guser){
+            this.$signedIn(self.$basicProfile);
+          }
+        }
+        if (this.$signedOut){
+          self.listeners.push({e:"user:signOut", f: this.$signedOut});
+        }
+      },
+      beforeDestroy(){
+        self.listeners = self.listeners.filter(o=>{
+          return !(o.f==this.$signedIn||o.f==this.$signedOut);
+        })
+      }
+    });
+
     if (!window.gapi){
-      const onReady = (options||{})?.onReady||function(){};
+      
       let script = document.createElement('script');
       script.setAttribute('src', 'https://apis.google.com/js/platform.js');
       script.setAttribute('type', 'text/javascript');
-      script.onload=()=>{
-        
+      script.onload=()=>{        
         window.gapi.load("client",()=>{
           if (options?.apiKey){
             window.gapi.setApiKey=options?.apiKey;
           }
         }); 
-        
         window.gapi.load('auth2', ()=>{
           // https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
           window.gapi.auth2.init({
             client_id: options.client_id,
             scope: options.scope
-          }).then((gauth)=>{
+          }).then((gauth)=>{            
+            Vue.set(self.state,"ready", true);
             window.gapi.auth2.getAuthInstance().isSignedIn.listen(authState);
-            authState(self.$isSignedIn); // important call when user is already logged in
-            if (gauth){
-                           
-              onReady(window.gapi);
-            }
-            else{
-              onReady(null);  
-            }
-          }).catch(()=>{
-            onReady(null);
+            authState(self.$isSignedIn); // important call when user is already logged in            
+          }).catch(()=>{            
+            console.log("gapi auth2 loading error");
           });
         });
       };
       script.onerror=()=>{        
-        onReady(null);
+        console.log("gapi loading error");
       };
       document.getElementsByTagName('head')[0].appendChild(script);
     }
@@ -168,7 +205,8 @@ export default {
           self.fb = fbApp;
         }
       });
-    }
+    }   
+
   },
 
   /* google api sign in button */
@@ -181,8 +219,8 @@ export default {
       'scope':"profile",
       'longtitle': false,
       'theme':"dark",
-      'onsuccess': (guser)=>{        
-        el.dispatchEvent(new CustomEvent("success",{detail:guser}));
+      'onsuccess': (user)=>{        
+        el.dispatchEvent(new CustomEvent("success",{detail:user}));
       },
       'onerror':(e)=>{
         el.dispatchEvent(new CustomEvent("error", {detail:e}));            
@@ -218,7 +256,7 @@ export default {
 
   /* add additional scopes */
   $grant(scopes){
-    let user = this.$user;
+    let user = window?.gapi && window?.gapi?.auth2?.getAuthInstance()?.currentUser?.get()||null;
     if (user){
       let lst = (scopes||"").split(" ").filter((scope)=>!user.hasGrantedScopes(scope))
       if (lst.length){
@@ -234,14 +272,15 @@ export default {
     return window?.gapi && window?.gapi?.auth2?.getAuthInstance()?.currentUser?.get().getGrantedScopes() || "";
   },
 
-  // app.__vue__.$gapi.$idToken
-  get $user(){
+  // app.__vue__.$gapi.$guser
+  get $guser(){
     return window?.gapi && window?.gapi?.auth2?.getAuthInstance()?.currentUser?.get() || null;
   },
 
   // app.__vue__.$gapi.$basicProfile
-  get $basicProfile(){
-    return window?.gapi && window?.gapi?.auth2?.getAuthInstance()?.currentUser?.get()?.getBasicProfile() || null;
+  get $basicProfile(){    
+    let profile =  this?.$guser && this?.$guser?.getBasicProfile() || null;
+    return profile ? JSON.parse(JSON.stringify(profile)): null;
   },
 
   // app.__vue__.$gapi.$isSignedIn
@@ -251,12 +290,12 @@ export default {
 
   // app.__vue__.$gapi.$accessToken
   get $accessToken(){    
-    return this?.$user ? this?.$user?.getAuthResponse(true)?.access_token:null;
+    return this?.$guser ? this?.$guser?.getAuthResponse(true)?.access_token:null;
   },
 
   // app.__vue__.$gapi.$idToken
   get $idToken(){    
-    return this?.$user ? this?.$user?.getAuthResponse(true)?.id_token:null;
+    return this?.$guser ? this?.$guser?.getAuthResponse(true)?.id_token:null;
   },
 
   // app.__vue__.$gapi.$fb

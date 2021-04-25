@@ -1,12 +1,9 @@
 <template>
   <div id="app">
     <h1>Vue Google API example</h1>
-    <GSignIn 
-      @success="onSuccess"
-      v-if="!guser"
-    />
+    <GSignIn v-if="!$user"/>
     <div v-else>      
-      <div>{{guser.getBasicProfile()}}</div>
+      <div>{{$user}}</div>
       <div>
         <button @click="listFiles" :disabled="busy">List Google Drive Files</button>
         <button @click="$gapi.$signOut()">Sign out</button>
@@ -22,19 +19,14 @@
 
 export default {
   name: 'App',
-  components: {
-    
-  },
   data(){
-    return {      
-      guser:null,
+    return {
       result:null,
       busy:false
     }
   },
   methods:{    
-    onSuccess(guser){
-      this.guser=guser;
+    $signedIn(){      
       this.$gapi.$load('drive', 'v3', ()=>{
         console.log("gdrive ok");
       })
@@ -42,6 +34,7 @@ export default {
     listFiles(){
       this.result=null;
       this.busy=true;
+      // scopes can be aditioned requested or all at once
       this.$gapi.$grant(
         "https://www.googleapis.com/auth/drive"
       );
@@ -51,17 +44,7 @@ export default {
         this.result=result;
         this.busy=false;
       });
-    },    
-    onSignOut(){
-      this.guser=null;  
-      console.log("user sign out");      
     }
-  },
-  created(){    
-    this.$gapi.$on("user:signOut", this.onSignOut);    
-  },
-  beforeDestroy(){
-    this.$gapi.$off("user:signOut", this.onSignOut);
   }
 }
 </script>

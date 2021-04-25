@@ -9,6 +9,7 @@ Firebase authentication support!
 - API Injection
 - Simplified Google API (gapi) and Google Firebase authentication 
 - SignIn / SignOut events 
+- Incremental scope request or all at once
 
 ## Instalation
 
@@ -19,7 +20,9 @@ Just copy gapi.js to your plugins directory
 Create your Google authentication settings file
 
 ### Basic settings
+The minimal gdata authentication settings
 
+*gdata.json*
 ``` json
 {
   "client_id": "CLIENT_ID.apps.googleusercontent.com",
@@ -30,7 +33,8 @@ Create your Google authentication settings file
 
 ### Firebase authentication settings
 If you want your users to signin in your Google Firebase application you must include the Firebase settings by adding the firebase object to the :
- 
+
+*gdata.json*
 ``` json
 {
   "client_id": "CLIENT_ID.apps.googleusercontent.com",
@@ -53,39 +57,81 @@ If you want your users to signin in your Google Firebase application you must in
 ```
 2. Edit your main.js file and import the plugin
 
+*main.js*
 ``` javascript
 import Vue from 'vue'
 import App from './App.vue'
 
+Vue.config.productionTip = false
+
 /* the google api plugin */
 import gapi from "./plugins/gapi.js"
-
 /* the authentication settings */
 import GAPISettings from "./gapi.json";
+/* install the plugin */
+Vue.use(gapi,{...GAPISettings});
 
-/* Original - no Google API support */
-// new Vue({
-//   render: h => h(App),
-// }).$mount('#app')
-
-/* Modified - Google API support */
-Vue.use(gapi,{
-  ...GAPISettings, // your json gapi settings
-  onReady:()=>{
-    new Vue({
-      render: h => h(App),
-    }).$mount('#app')
-  }
-});
+new Vue({
+  render: h => h(App),
+}).$mount('#app')
 ```
 
-The plugin and gapi instance are now available as a Vue js plugin for all components:
+Plugin and gapi instance are available as a Vue js plugin for all components:
 
 ``` javascript
 this.$gapi
 ```
+### user profile object access
 
-Check example App for details on how to handle API methods from your component 
+``` html
+<!-- from vue template: -->
+<div>{{$gapi.$guser.getBasicProfile().getEmail()}}</div>
+```
+``` javascript
+// from the js code
+computed:{
+  userEmail(){
+    return this.$gapi.$guser.getBasicProfile().getEmail()
+  },
+  userName(){
+    return this.$gapi.$guser.getBasicProfile().getName()
+  }
+}
+```
+
+### events
+
+In order to perform custom sign in / out actions, you may define the following event handlers in your **methods** block:
+
+**$signedIn**
+
+called when a user has just signed in (or was already signed in when component was loaded)
+
+*example:*
+``` javascript
+methods:{    
+    $signedIn(){      
+      this.$gapi.$load('drive', 'v3', ()=>{
+        console.log("gdrive ok");
+      })
+    }
+}
+```
+**$signedOut**
+
+called when a user signed out
+
+*example:*
+``` javascript
+methods:{    
+    $signedOut(){      
+      this.$router.push("/");
+    }
+}
+```
+
+Check example appplication for details
+___
 
 ## References
 

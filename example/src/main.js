@@ -5,22 +5,11 @@ Vue.config.productionTip = false
 
 /* the google api plugin */
 import gapi from "./plugins/gapi.js"
-
 /* the authentication settings */
 import GAPISettings from "./gapi.json";
+/* install the plugin */
+Vue.use(gapi,{...GAPISettings});
 
-
-/* Original */
-// new Vue({
-//   render: h => h(App),
-// }).$mount('#app')
-
-/* Modified */
-Vue.use(gapi,{
-  ...GAPISettings,
-  onReady:()=>{
-    new Vue({
-      render: h => h(App),
-    }).$mount('#app')
-  }
-});
+new Vue({
+  render: h => h(App),
+}).$mount('#app')
