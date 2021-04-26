@@ -5,10 +5,19 @@ Vue.config.productionTip = false
 
 /* the google api plugin */
 import gapi from "./plugins/gapi.js"
-/* the authentication settings */
-import GAPISettings from "./gapi.json";
 /* install the plugin */
-Vue.use(gapi,{...GAPISettings});
+Vue.use(gapi,{
+  "client_id": "CLIENT_ID.apps.googleusercontent.com",
+  "scope": "profile email",
+  "apiKey": "API_KEY",
+  "firebase": {
+    "authDomain": "PROJECT_NAME.firebaseapp.com",
+    "projectId": "PROJECT_NAME",
+    "storageBucket": "PROJECT_NAME.appspot.com",
+    "messagingSenderId": "PROJECT_ID",
+    "appId": "APP_ID"
+  }
+});
 
 new Vue({
   render: h => h(App),

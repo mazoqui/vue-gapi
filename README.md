@@ -17,12 +17,11 @@ Just copy gapi.js to your plugins directory
 
 ## Usage
 
-Create your Google authentication settings file
+Setup the Google authentication configuration for your application
 
 ### Basic settings
 The minimal gdata authentication settings
 
-*gdata.json*
 ``` json
 {
   "client_id": "CLIENT_ID.apps.googleusercontent.com",
@@ -34,7 +33,6 @@ The minimal gdata authentication settings
 ### Firebase authentication settings
 If you want your users to signin in your Google Firebase application you must include the Firebase settings by adding the firebase object to the :
 
-*gdata.json*
 ``` json
 {
   "client_id": "CLIENT_ID.apps.googleusercontent.com",
@@ -66,10 +64,20 @@ Vue.config.productionTip = false
 
 /* the google api plugin */
 import gapi from "./plugins/gapi.js"
-/* the authentication settings */
-import GAPISettings from "./gapi.json";
+
 /* install the plugin */
-Vue.use(gapi,{...GAPISettings});
+Vue.use(gapi,{
+  "client_id": "CLIENT_ID.apps.googleusercontent.com",
+  "scope": "profile email",
+  "apiKey": "API_KEY",
+  "firebase": {
+    "authDomain": "PROJECT_NAME.firebaseapp.com",
+    "projectId": "PROJECT_NAME",
+    "storageBucket": "PROJECT_NAME.appspot.com",
+    "messagingSenderId": "PROJECT_ID",
+    "appId": "APP_ID"
+  }
+});
 
 new Vue({
   render: h => h(App),
