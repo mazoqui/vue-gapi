@@ -173,7 +173,7 @@ export default {
       script.onload=()=>{        
         window.gapi.load("client",()=>{
           if (options?.apiKey){
-            window.gapi.setApiKey=options?.apiKey;
+            window.gapi.client.setApiKey(options?.apiKey);
           }
         }); 
         window.gapi.load('auth2', ()=>{
